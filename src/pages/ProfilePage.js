@@ -90,6 +90,7 @@ export default function ProfilePage() {
     isAuthenticated: true,
     username: "Eric Simons",
     image: "http://i.imgur.com/Qr71crq.jpg",
+    bio: "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games"
   };
 
   const pagging = {

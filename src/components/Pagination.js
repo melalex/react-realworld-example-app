@@ -9,6 +9,7 @@ function PageSelector({ pageNumber, isSelected, setPage }) {
   return (
     <li className={pageClass}>
       <a
+        key={pageNumber}
         className="page-link"
         href=""
         onClick={handleWithoutPropagation(() => setPage(pageNumber))}

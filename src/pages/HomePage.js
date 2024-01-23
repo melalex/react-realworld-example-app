@@ -90,6 +90,7 @@ export default function HomePage() {
   const user = {
     isAuthenticated: true,
     username: "Eric Simons",
+    image: "http://i.imgur.com/Qr71crq.jpg",
   };
   const popularTags = [
     "programming",

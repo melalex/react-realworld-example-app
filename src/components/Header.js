@@ -54,7 +54,7 @@ function AuthenticatedUserHeader({ user }) {
           </li>
           <li className="nav-item">
             <a className="nav-link" href={`/profile/${user.username}`}>
-              <img src="" className="user-pic" />
+              <img src={user.image} className="user-pic" />
               {user.username}
             </a>
           </li>
