@@ -2,70 +2,73 @@ import ArticlesList from "../components/ArticlesList";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import Tabs from "../components/Tabs";
-import { GLOBAL_FEED, USER_FEED } from "../features/changeFeed/ChangeFeed";
+import {
+  FAVORITE_ARTICLES,
+  MY_ARTICLES,
+} from "../features/selectArticlesType/SelectArticlesType";
 
-function Banner() {
+function ProfileAction({ currentUser, profile }) {
+  if (currentUser.username === profile.username)
+    return (
+      <button className="btn btn-sm btn-outline-secondary action-btn">
+        <i className="ion-gear-a"></i>
+        &nbsp; Edit Profile Settings
+      </button>
+    );
+  else
+    return (
+      <button className="btn btn-sm btn-outline-secondary action-btn">
+        <i className="ion-plus-round"></i>
+        &nbsp; Follow {profile.username}
+      </button>
+    );
+}
+
+function ProfileInfo({ currentUser, profile }) {
   return (
-    <div className="banner">
+    <div className="user-info">
       <div className="container">
-        <h1 className="logo-font">conduit</h1>
-        <p>A place to share your knowledge.</p>
+        <div className="row">
+          <div className="col-xs-12 col-md-10 offset-md-1">
+            <img src={profile.image} className="user-img" />
+            <h4>{profile.username}</h4>
+            <p>{profile.bio}</p>
+            <ProfileAction currentUser={currentUser} profile={profile} />
+          </div>
+        </div>
       </div>
     </div>
   );
 }
 
-function PopularTagsEntry({ tag }) {
-  return (
-    <a href={`/tags/${tag}`} className="tag-pill tag-default">
-      {tag}
-    </a>
-  );
-}
-
-function PopularTags({ tags }) {
-  return (
-    <div className="sidebar">
-      <p>Popular Tags</p>
-
-      <div className="tag-list">
-        {tags.map((it) => (
-          <PopularTagsEntry tag={it} />
-        ))}
-      </div>
-    </div>
-  );
-}
-
-function HomePageContent({
-  popularTags,
-  pagging,
-  selectedFeed,
-  user,
+function ProfilePageContent({
+  currentUser,
+  profile,
   articles,
+  pagging,
+  selectedTab,
+  setTab,
   setPage,
-  setFeed,
   addToFavorite,
   removeFromFavorite,
 }) {
-  const globalFeedTab = { id: GLOBAL_FEED, displayName: "Global Feed" };
-  const userFeedTab = { id: USER_FEED, displayName: "Your Feed" };
-  const selectedTab = user.isAuthenticated ? selectedFeed : GLOBAL_FEED;
-  const tabs = user.isAuthenticated
-    ? [userFeedTab, globalFeedTab]
-    : [globalFeedTab];
+  const myArticlesTab = { id: MY_ARTICLES, displayName: "My Articles" };
+  const favoriteArticlesTab = {
+    id: FAVORITE_ARTICLES,
+    displayName: "Favorite Articles",
+  };
 
   return (
-    <div className="home-page">
-      <Banner />
+    <div className="profile-page">
+      <ProfileInfo currentUser={currentUser} profile={profile} />
 
-      <div className="container page">
+      <div className="container">
         <div className="row">
-          <div className="col-md-9">
+          <div className="col-xs-12 col-md-10 offset-md-1">
             <Tabs
-              values={tabs}
+              values={[myArticlesTab, favoriteArticlesTab]}
               selectedValue={selectedTab}
-              setValue={setFeed}
+              setValue={setTab}
             />
 
             <ArticlesList
@@ -76,35 +79,24 @@ function HomePageContent({
               setPage={setPage}
             />
           </div>
-
-          <div className="col-md-3">
-            <PopularTags tags={popularTags} />
-          </div>
         </div>
       </div>
     </div>
   );
 }
 
-export default function HomePage() {
+export default function ProfilePage() {
   const user = {
     isAuthenticated: true,
     username: "Eric Simons",
+    image: "http://i.imgur.com/Qr71crq.jpg",
   };
-  const popularTags = [
-    "programming",
-    "javascript",
-    "emberjs",
-    "angularjs",
-    "react",
-    "mean",
-    "node",
-    "rails",
-  ];
+
   const pagging = {
     pageCount: 2,
     currentPage: 1,
   };
+
   const articles = [
     {
       slug: "how-to-build-webapps-that-scale",
@@ -142,12 +134,10 @@ export default function HomePage() {
       },
     },
   ];
-  const selectedFeed = GLOBAL_FEED;
+  const selectedTab = MY_ARTICLES;
+
   const setPage = function (i) {
     alert(`Go to page ${i}`);
-  };
-  const setFeed = function (i) {
-    alert(`Set feed to ${i}`);
   };
   const addToFavorite = function (i) {
     alert(`Add article ${i} to favorite`);
@@ -155,22 +145,25 @@ export default function HomePage() {
   const removeFromFavorite = function (i) {
     alert(`Remove article from ${i} favorite`);
   };
+  const setTab = function (i) {
+    alert(`Set tab to ${i}`);
+  };
 
   return (
-    <div>
+    <dev>
       <Header user={user} />
-      <HomePageContent
-        popularTags={popularTags}
-        pagging={pagging}
-        selectedFeed={selectedFeed}
-        user={user}
+      <ProfilePageContent
+        currentUser={user}
+        profile={user}
         articles={articles}
+        pagging={pagging}
+        selectedTab={selectedTab}
+        setTab={setTab}
         setPage={setPage}
-        setFeed={setFeed}
         addToFavorite={addToFavorite}
         removeFromFavorite={removeFromFavorite}
       />
       <Footer />
-    </div>
+    </dev>
   );
 }

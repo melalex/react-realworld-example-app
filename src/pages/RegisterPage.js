@@ -65,7 +65,13 @@ export default function RegisterPage() {
   return (
     <div>
       <Header user={user} />
-      <RegisterPageContent onRegister={onRegister} />
+      <RegisterPageContent
+        onRegister={onRegister}
+        articles={articles}
+        setPage={setPage}
+        setFeed={setFeed}
+        addToFavorite={addToFavorite}
+        removeFromFavorite={removeFromFavorite} />
       <Footer />
     </div>
   );
