@@ -7,9 +7,9 @@ function Tab({ tabId, displayName, isSelectedValue, setValue }) {
   const tabClass = isSelectedValue ? ACTIVE_TAB : TAB;
 
   return (
-    <li class="nav-item">
+    <li className="nav-item">
       <a
-        class={tabClass}
+        className={tabClass}
         onClick={handleWithoutPropagation(() => setValue(tabId))}
       >
         {displayName}
@@ -20,8 +20,8 @@ function Tab({ tabId, displayName, isSelectedValue, setValue }) {
 
 export default function Tabs({ values, selectedValue, setValue }) {
   return (
-    <div class="feed-toggle">
-      <ul class="nav nav-pills outline-active">
+    <div className="feed-toggle">
+      <ul className="nav nav-pills outline-active">
         {values.map((it) => (
           <Tab
             tabId={it.id}

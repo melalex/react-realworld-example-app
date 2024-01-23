@@ -10,9 +10,9 @@ const NOT_FAVORITED_CLASS = "btn btn-sm btn-outline-primary pull-xs-right";
 
 function Banner() {
   return (
-    <div class="banner">
-      <div class="container">
-        <h1 class="logo-font">conduit</h1>
+    <div className="banner">
+      <div className="container">
+        <h1 className="logo-font">conduit</h1>
         <p>A place to share your knowledge.</p>
       </div>
     </div>
@@ -21,7 +21,7 @@ function Banner() {
 
 function PopularTagsEntry({ tag }) {
   return (
-    <a href={`/tags/${tag}`} class="tag-pill tag-default">
+    <a href={`/tags/${tag}`} className="tag-pill tag-default">
       {tag}
     </a>
   );
@@ -29,10 +29,10 @@ function PopularTagsEntry({ tag }) {
 
 function PopularTags({ tags }) {
   return (
-    <div class="sidebar">
+    <div className="sidebar">
       <p>Popular Tags</p>
 
-      <div class="tag-list">
+      <div className="tag-list">
         {tags.map((it) => (
           <PopularTagsEntry tag={it} />
         ))}
@@ -51,27 +51,27 @@ function FavoriteButton({
   const action = favorited ? removeFromFavorite : addToFavorite;
 
   return (
-    <button class={buttonClass} onClick={handleWithoutPropagation(action)}>
-      <i class="ion-heart"></i> {favoritesCount}
+    <button className={buttonClass} onClick={handleWithoutPropagation(action)}>
+      <i className="ion-heart"></i> {favoritesCount}
     </button>
   );
 }
 
 function ArticleTag({ displayName }) {
-  return <li class="tag-default tag-pill tag-outline">{displayName}</li>;
+  return <li className="tag-default tag-pill tag-outline">{displayName}</li>;
 }
 
 function ArticlePreview({ article, addToFavorite, removeFromFavorite }) {
   const authorProfileRef = `/profile/${article.author.username}`;
 
   return (
-    <div class="article-preview">
-      <div class="article-meta">
+    <div className="article-preview">
+      <div className="article-meta">
         <a href={authorProfileRef}>
           <img src={article.author.image} />
         </a>
-        <div class="info">
-          <a href={authorProfileRef} class="author">
+        <div className="info">
+          <a href={authorProfileRef} className="author">
             {article.author.username}
           </a>
           <time className="date" dateTime={article.createdAt}>
@@ -85,11 +85,11 @@ function ArticlePreview({ article, addToFavorite, removeFromFavorite }) {
           removeFromFavorite={() => removeFromFavorite(article.slug)}
         />
       </div>
-      <a href={`/article/${article.slug}`} class="preview-link">
+      <a href={`/article/${article.slug}`} className="preview-link">
         <h1>{article.title}</h1>
         <p>{article.description}</p>
         <span>Read more...</span>
-        <ul class="tag-list">
+        <ul className="tag-list">
           {article.tagList.map((it) => (
             <ArticleTag displayName={it} />
           ))}
@@ -118,12 +118,12 @@ function HomePageContent({
     : [globalFeedTab];
 
   return (
-    <div class="home-page">
+    <div className="home-page">
       <Banner />
 
-      <div class="container page">
-        <div class="row">
-          <div class="col-md-9">
+      <div className="container page">
+        <div className="row">
+          <div className="col-md-9">
             <Tabs
               values={tabs}
               selectedValue={selectedTab}
@@ -145,7 +145,7 @@ function HomePageContent({
             />
           </div>
 
-          <div class="col-md-3">
+          <div className="col-md-3">
             <PopularTags tags={popularTags} />
           </div>
         </div>

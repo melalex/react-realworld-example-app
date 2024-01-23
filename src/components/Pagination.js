@@ -7,9 +7,9 @@ function PageSelector({ pageNumber, isSelected, setPage }) {
   const pageClass = isSelected ? ACTIVE_PAGE_ITEM : PAGE_ITEM;
 
   return (
-    <li class={pageClass}>
+    <li className={pageClass}>
       <a
-        class="page-link"
+        className="page-link"
         href=""
         onClick={handleWithoutPropagation(() => setPage(pageNumber))}
       >
@@ -21,7 +21,7 @@ function PageSelector({ pageNumber, isSelected, setPage }) {
 
 export default function Pagination({ pagesCount, currenPage, setPage }) {
   return (
-    <ul class="pagination">
+    <ul className="pagination">
       {[...Array(pagesCount).keys()]
         .map((it) => it + 1)
         .map((it) => (
