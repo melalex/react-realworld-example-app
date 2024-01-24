@@ -1,4 +1,8 @@
-import { handleWithoutPropagation } from "../utils/utilityFunctions";
+import {
+  createUserProfileRef,
+  handleWithoutPropagation,
+  toMounthAndDayStr,
+} from "../utils/utilityFunctions";
 import Pagination from "./Pagination";
 
 const FAVORITED_CLASS = "btn btn-sm btn-primary pull-xs-right";
@@ -25,7 +29,7 @@ function ArticleTag({ displayName }) {
 }
 
 function ArticlePreview({ article, addToFavorite, removeFromFavorite }) {
-  const authorProfileRef = `/profile/${article.author.username}`;
+  const authorProfileRef = createUserProfileRef(article.author.username);
 
   return (
     <div className="article-preview">
@@ -38,7 +42,7 @@ function ArticlePreview({ article, addToFavorite, removeFromFavorite }) {
             {article.author.username}
           </a>
           <time className="date" dateTime={article.createdAt}>
-            {new Date(article.createdAt).toDateString()}
+            {toMounthAndDayStr(article.createdAt)}
           </time>
         </div>
         <FavoriteButton

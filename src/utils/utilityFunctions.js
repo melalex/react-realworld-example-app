@@ -11,3 +11,11 @@ export function handleAndPreventDefault(fun) {
     fun();
   };
 }
+
+export function createUserProfileRef(username) {
+  return `/profile/${username}`;
+}
+
+export function toMounthAndDayStr(date) {
+  return new Date(date).toDateString();
+}

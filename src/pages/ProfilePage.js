@@ -1,4 +1,5 @@
 import ArticlesList from "../components/ArticlesList";
+import FollowButton from "../components/FollowButton";
 import Footer from "../components/Footer";
 import Header from "../components/Header";
 import Tabs from "../components/Tabs";
@@ -7,7 +8,7 @@ import {
   MY_ARTICLES,
 } from "../features/selectArticlesType/SelectArticlesType";
 
-function ProfileAction({ currentUser, profile }) {
+function ProfileAction({ currentUser, profile, onFollow, onUnfollow }) {
   if (currentUser.username === profile.username)
     return (
       <button className="btn btn-sm btn-outline-secondary action-btn">
@@ -17,10 +18,12 @@ function ProfileAction({ currentUser, profile }) {
     );
   else
     return (
-      <button className="btn btn-sm btn-outline-secondary action-btn">
-        <i className="ion-plus-round"></i>
-        &nbsp; Follow {profile.username}
-      </button>
+      <FollowButton
+        username={profile.username}
+        isFollowng={profile.following}
+        onFollow={onFollow}
+        onUnfollow={onUnfollow}
+      />
     );
 }
 
@@ -33,7 +36,12 @@ function ProfileInfo({ currentUser, profile }) {
             <img src={profile.image} className="user-img" />
             <h4>{profile.username}</h4>
             <p>{profile.bio}</p>
-            <ProfileAction currentUser={currentUser} profile={profile} />
+            <ProfileAction
+              currentUser={currentUser}
+              profile={profile}
+              onFollow={() => alert("!!!")}
+              onUnfollow={() => alert("!!!")}
+            />
           </div>
         </div>
       </div>
@@ -90,7 +98,7 @@ export default function ProfilePage() {
     isAuthenticated: true,
     username: "Eric Simons",
     image: "http://i.imgur.com/Qr71crq.jpg",
-    bio: "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games"
+    bio: "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games",
   };
 
   const pagging = {
