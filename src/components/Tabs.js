@@ -24,9 +24,10 @@ export default function Tabs({ values, selectedValue, setValue }) {
       <ul className="nav nav-pills outline-active">
         {values.map((it) => (
           <Tab
+            key={it.id}
             tabId={it.id}
             displayName={it.displayName}
-            isSelectedValue={it.id == selectedValue}
+            isSelectedValue={it.id === selectedValue}
             setValue={setValue}
           />
         ))}

@@ -58,7 +58,7 @@ function ArticlePreview({ article, addToFavorite, removeFromFavorite }) {
         <span>Read more...</span>
         <ul className="tag-list">
           {article.tagList.map((it) => (
-            <ArticleTag displayName={it} />
+            <ArticleTag key={it} displayName={it} />
           ))}
         </ul>
       </a>
@@ -74,9 +74,10 @@ export default function ArticlesList({
   removeFromFavorite,
 }) {
   return (
-    <dev>
+    <div>
       {articles.map((it) => (
         <ArticlePreview
+          key={it.slug}
           article={it}
           addToFavorite={addToFavorite}
           removeFromFavorite={removeFromFavorite}
@@ -88,6 +89,6 @@ export default function ArticlesList({
         currenPage={pagging.currentPage}
         setPage={setPage}
       />
-    </dev>
+    </div>
   );
 }

@@ -159,7 +159,7 @@ export default function ProfilePage() {
   };
 
   return (
-    <dev>
+    <div>
       <Header user={user} />
       <ProfilePageContent
         currentUser={user}
@@ -173,6 +173,6 @@ export default function ProfilePage() {
         removeFromFavorite={removeFromFavorite}
       />
       <Footer />
-    </dev>
+    </div>
   );
 }

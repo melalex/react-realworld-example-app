@@ -1,78 +1,85 @@
-import Footer from "../components/Footer";
-import Header from "../components/Header";
+import { useDispatch, useSelector } from "react-redux";
+import ErrorMessage from "../components/ErrorMessage";
+import { Link, useNavigate } from "react-router-dom";
+import {
+  registerUser,
+  selectUserErrors,
+  selectUserStatus,
+} from "../features/user/userSlice";
+import { useState } from "react";
+import SubmitButton from "../components/SubmitButton";
+import { handleAndPreventDefault, handleChangeWith } from "../utils/utilityFunctions";
+import Status from "../utils/Status";
 
-function RegisterPageContent({ onRegister, errors }) {
-  return (
-    <div className="auth-page">
-      <div className="container page">
-        <div className="row">
-          <div className="col-md-6 offset-md-3 col-xs-12">
-            <h1 className="text-xs-center">Sign up</h1>
-            <p className="text-xs-center">
-              <a href="/login">Have an account?</a>
-            </p>
+export default function RegisterPage() {
+  const status = useSelector(selectUserStatus);
+  const errors = useSelector(selectUserErrors);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-            <ErrorMessage errors={errors} />
+  const [formData, setFormData] = useState({
+    username: "",
+    email: "",
+    password: "",
+  });
 
-            <form onSubmit={onRegister}>
-              <fieldset className="form-group">
-                <input
-                  name="username"
-                  className="form-control form-control-lg"
-                  type="text"
-                  placeholder="Username"
-                />
-              </fieldset>
-              <fieldset className="form-group">
-                <input
-                  name="email"
-                  className="form-control form-control-lg"
-                  type="text"
-                  placeholder="Email"
-                />
-              </fieldset>
-              <fieldset className="form-group">
-                <input
-                  name="password"
-                  className="form-control form-control-lg"
-                  type="password"
-                  placeholder="Password"
-                />
-              </fieldset>
-              <button
-                type="submit"
-                className="btn btn-lg btn-primary pull-xs-right"
-              >
-                Sign up
-              </button>
-            </form>
+  const onRegister = () => {
+    dispatch(registerUser(formData));
+  };
+  const handleChange = handleChangeWith(formData, setFormData);
+
+  if (status === Status.SUCCESS.value) navigate("/");
+  else
+    return (
+      <div className="auth-page">
+        <div className="container page">
+          <div className="row">
+            <div className="col-md-6 offset-md-3 col-xs-12">
+              <h1 className="text-xs-center">Sign up</h1>
+              <p className="text-xs-center">
+                <Link to="/login">Have an account?</Link>
+              </p>
+
+              <ErrorMessage errors={errors} />
+
+              <form onSubmit={handleAndPreventDefault(onRegister)}>
+                <fieldset className="form-group">
+                  <input
+                    name="username"
+                    className="form-control form-control-lg"
+                    type="text"
+                    placeholder="Username"
+                    onChange={handleChange}
+                  />
+                </fieldset>
+                <fieldset className="form-group">
+                  <input
+                    name="email"
+                    className="form-control form-control-lg"
+                    type="text"
+                    placeholder="Email"
+                    onChange={handleChange}
+                  />
+                </fieldset>
+                <fieldset className="form-group">
+                  <input
+                    name="password"
+                    className="form-control form-control-lg"
+                    type="password"
+                    placeholder="Password"
+                    onChange={handleChange}
+                  />
+                </fieldset>
+                <SubmitButton
+                  className="btn btn-lg btn-primary pull-xs-right"
+                  status={status}
+                >
+                  Sign up
+                </SubmitButton>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-export default function RegisterPage() {
-  const user = {
-    isAuthenticated: false,
-  };
-
-  const onRegister = (e) => {
-    e.preventDefault();
-  };
-
-  return (
-    <div>
-      <Header user={user} />
-      <RegisterPageContent
-        onRegister={onRegister}
-        articles={articles}
-        setPage={setPage}
-        setFeed={setFeed}
-        addToFavorite={addToFavorite}
-        removeFromFavorite={removeFromFavorite} />
-      <Footer />
-    </div>
-  );
+    );
 }

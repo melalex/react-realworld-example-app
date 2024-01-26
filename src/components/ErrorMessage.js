@@ -3,7 +3,7 @@ export default function ErrorMessage({ errors }) {
     return (
       <ul className="error-messages">
         {errors.map((it) => (
-          <li>{it}</li>
+          <li key={it}>{it}</li>
         ))}
       </ul>
     );

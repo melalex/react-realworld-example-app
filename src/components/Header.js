@@ -1,25 +1,29 @@
+import { useSelector } from "react-redux";
+import { selectUser } from "../features/user/userSlice";
+import { Link } from "react-router-dom";
+
 function UnauthenticatedUserHeader() {
   return (
     <nav className="navbar navbar-light">
       <div className="container">
-        <a className="navbar-brand" href="/">
+        <Link className="navbar-brand" to="/">
           conduit
-        </a>
+        </Link>
         <ul className="nav navbar-nav pull-xs-right">
           <li className="nav-item">
-            <a className="nav-link active" href="/">
+            <Link className="nav-link active" to="/">
               Home
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
-            <a className="nav-link" href="/login">
+            <Link className="nav-link" to="/login">
               Sign in
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
-            <a className="nav-link" href="/register">
+            <Link className="nav-link" to="/register">
               Sign up
-            </a>
+            </Link>
           </li>
         </ul>
       </div>
@@ -31,32 +35,32 @@ function AuthenticatedUserHeader({ user }) {
   return (
     <nav className="navbar navbar-light">
       <div className="container">
-        <a className="navbar-brand" href="/">
+        <Link className="navbar-brand" to="/">
           conduit
-        </a>
+        </Link>
         <ul className="nav navbar-nav pull-xs-right">
           <li className="nav-item">
-            <a className="nav-link active" href="/">
+            <Link className="nav-link active" to="/">
               Home
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
-            <a className="nav-link" href="/editor">
+            <Link className="nav-link" to="/editor">
               {" "}
               <i className="ion-compose"></i>&nbsp;New Article{" "}
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
-            <a className="nav-link" href="/settings">
+            <Link className="nav-link" to="/settings">
               {" "}
               <i className="ion-gear-a"></i>&nbsp;Settings{" "}
-            </a>
+            </Link>
           </li>
           <li className="nav-item">
-            <a className="nav-link" href={`/profile/${user.username}`}>
-              <img src={user.image} className="user-pic" />
-              {user.username}
-            </a>
+            <Link className="nav-link" to={`/profile/${user.profile.username}`}>
+              <img src={user.profile.image} className="user-pic" />
+              {user.profile.username}
+            </Link>
           </li>
         </ul>
       </div>
@@ -64,7 +68,9 @@ function AuthenticatedUserHeader({ user }) {
   );
 }
 
-export default function Header({ user }) {
+export default function Header() {
+  const user = useSelector(selectUser);
+
   if (user.isAuthenticated) return <AuthenticatedUserHeader user={user} />;
   else return <UnauthenticatedUserHeader />;
 }

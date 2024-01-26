@@ -1,6 +1,4 @@
 import ArticlesList from "../components/ArticlesList";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
 import Tabs from "../components/Tabs";
 import { GLOBAL_FEED, USER_FEED } from "../features/changeFeed/ChangeFeed";
 
@@ -30,57 +28,8 @@ function PopularTags({ tags }) {
 
       <div className="tag-list">
         {tags.map((it) => (
-          <PopularTagsEntry tag={it} />
+          <PopularTagsEntry key={it} tag={it} />
         ))}
-      </div>
-    </div>
-  );
-}
-
-function HomePageContent({
-  popularTags,
-  pagging,
-  selectedFeed,
-  user,
-  articles,
-  setPage,
-  setFeed,
-  addToFavorite,
-  removeFromFavorite,
-}) {
-  const globalFeedTab = { id: GLOBAL_FEED, displayName: "Global Feed" };
-  const userFeedTab = { id: USER_FEED, displayName: "Your Feed" };
-  const selectedTab = user.isAuthenticated ? selectedFeed : GLOBAL_FEED;
-  const tabs = user.isAuthenticated
-    ? [userFeedTab, globalFeedTab]
-    : [globalFeedTab];
-
-  return (
-    <div className="home-page">
-      <Banner />
-
-      <div className="container page">
-        <div className="row">
-          <div className="col-md-9">
-            <Tabs
-              values={tabs}
-              selectedValue={selectedTab}
-              setValue={setFeed}
-            />
-
-            <ArticlesList
-              articles={articles}
-              pagging={pagging}
-              addToFavorite={addToFavorite}
-              removeFromFavorite={removeFromFavorite}
-              setPage={setPage}
-            />
-          </div>
-
-          <div className="col-md-3">
-            <PopularTags tags={popularTags} />
-          </div>
-        </div>
       </div>
     </div>
   );
@@ -157,21 +106,40 @@ export default function HomePage() {
     alert(`Remove article from ${i} favorite`);
   };
 
+  const globalFeedTab = { id: GLOBAL_FEED, displayName: "Global Feed" };
+  const userFeedTab = { id: USER_FEED, displayName: "Your Feed" };
+  const selectedTab = user.isAuthenticated ? selectedFeed : GLOBAL_FEED;
+  const tabs = user.isAuthenticated
+    ? [userFeedTab, globalFeedTab]
+    : [globalFeedTab];
+
   return (
-    <div>
-      <Header user={user} />
-      <HomePageContent
-        popularTags={popularTags}
-        pagging={pagging}
-        selectedFeed={selectedFeed}
-        user={user}
-        articles={articles}
-        setPage={setPage}
-        setFeed={setFeed}
-        addToFavorite={addToFavorite}
-        removeFromFavorite={removeFromFavorite}
-      />
-      <Footer />
+    <div className="home-page">
+      <Banner />
+
+      <div className="container page">
+        <div className="row">
+          <div className="col-md-9">
+            <Tabs
+              values={tabs}
+              selectedValue={selectedTab}
+              setValue={setFeed}
+            />
+
+            <ArticlesList
+              articles={articles}
+              pagging={pagging}
+              addToFavorite={addToFavorite}
+              removeFromFavorite={removeFromFavorite}
+              setPage={setPage}
+            />
+          </div>
+
+          <div className="col-md-3">
+            <PopularTags tags={popularTags} />
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

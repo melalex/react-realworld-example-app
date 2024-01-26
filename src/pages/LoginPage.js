@@ -1,65 +1,77 @@
+import { useDispatch, useSelector } from "react-redux";
 import ErrorMessage from "../components/ErrorMessage";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
+import Status from "../utils/Status";
+import {
+  handleAndPreventDefault,
+  handleChangeWith,
+} from "../utils/utilityFunctions";
+import { useNavigate } from "react-router";
+import {
+  loginUser,
+  selectUserErrors,
+  selectUserStatus,
+} from "../features/user/userSlice";
+import SubmitButton from "../components/SubmitButton";
+import { useState } from "react";
+import { Link } from "react-router-dom";
 
-function LoginPageContent({ onLogin, errors }) {
-  return (
-    <div className="auth-page">
-      <div className="container page">
-        <div className="row">
-          <div className="col-md-6 offset-md-3 col-xs-12">
-            <h1 className="text-xs-center">Sign in</h1>
-            <p className="text-xs-center">
-              <a href="/register">Need an account?</a>
-            </p>
+export default function LoginPage() {
+  const status = useSelector(selectUserStatus);
+  const errors = useSelector(selectUserErrors);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
 
-            <ErrorMessage errors={errors} />
+  const [formData, setFormData] = useState({
+    email: "",
+    password: "",
+  });
 
-            <form onSubmit={onLogin}>
-              <fieldset className="form-group">
-                <input
-                  name="email"
-                  className="form-control form-control-lg"
-                  type="text"
-                  placeholder="Email"
-                />
-              </fieldset>
-              <fieldset className="form-group">
-                <input
-                  name="password"
-                  className="form-control form-control-lg"
-                  type="password"
-                  placeholder="Password"
-                />
-              </fieldset>
-              <button
-                type="submit"
-                className="btn btn-lg btn-primary pull-xs-right"
-              >
-                Sign in
-              </button>
-            </form>
+  const onLogin = () => dispatch(loginUser(formData));
+  const handleChange = handleChangeWith(formData, setFormData);
+
+  if (status === Status.SUCCESS.value) navigate("/");
+  else
+    return (
+      <div className="auth-page">
+        <div className="container page">
+          <div className="row">
+            <div className="col-md-6 offset-md-3 col-xs-12">
+              <h1 className="text-xs-center">Sign in</h1>
+              <p className="text-xs-center">
+                <Link to="/register">Need an account?</Link>
+              </p>
+
+              <ErrorMessage errors={errors} />
+
+              <form onSubmit={handleAndPreventDefault(onLogin)}>
+                <fieldset className="form-group">
+                  <input
+                    name="email"
+                    className="form-control form-control-lg"
+                    type="text"
+                    placeholder="Email"
+                    onChange={handleChange}
+                  />
+                </fieldset>
+                <fieldset className="form-group">
+                  <input
+                    name="password"
+                    className="form-control form-control-lg"
+                    type="password"
+                    placeholder="Password"
+                    onChange={handleChange}
+                  />
+                </fieldset>
+                <SubmitButton
+                  status={status}
+                  className="btn btn-lg btn-primary pull-xs-right"
+                >
+                  Sign in
+                </SubmitButton>
+              </form>
+            </div>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-export default function LoginPage() {
-  const user = {
-    isAuthenticated: false,
-  };
-
-  const onLogin = (e) => {
-    e.preventDefault();
-  };
-
-  return (
-    <div>
-      <Header user={user} />
-      <LoginPageContent onLogin={onLogin} />
-      <Footer />
-    </div>
-  );
+    );
 }
