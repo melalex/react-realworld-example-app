@@ -1,10 +1,20 @@
 import Status from "./Status";
 
 export const errorReducer = (state, action) => {
-  state.status = Status.FAILURE.value;
-  state.errors = Object.entries(action.payload.errors).map(
-    ([key, value]) => `${key} ${value}`
-  );
+  console.log(action);
+  state.status = Status.FAILURE;
+  if (action?.payload?.errors) {
+    state.errors = Object.entries(action.payload.errors).map(
+      ([key, value]) => `${key} ${value}`
+    );
+  } else {
+    console.error("Unknown error", action);
+    state.errors = ["Smth went wrong..."];
+  }
+};
+
+export const pendingReducer = (state, action) => {
+  state.status = Status.LOADING;
 };
 
 export function handleWithoutPropagation(fun) {
@@ -43,4 +53,19 @@ export function handleChangeWith(formData, setState) {
       [name]: value,
     });
   };
+}
+
+export function pageToLimmitAndOffcet(page, pageSize) {
+  return {
+    limit: pageSize,
+    offset: (page - 1) * pageSize,
+  };
+}
+
+export function extractPayload(it) {
+  return it.data;
+}
+
+export function authHeaderValue(token) {
+  return `Token ${token}`;
 }

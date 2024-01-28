@@ -1,15 +1,26 @@
-import ArticlesList from "../components/ArticlesList";
+import { useDispatch, useSelector } from "react-redux";
 import FollowButton from "../components/FollowButton";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
 import Tabs from "../components/Tabs";
+import { selectUser } from "../features/user/userSlice";
+import ArticlesListLayout from "../components/ArticlesListLayout";
+import { useParams } from "react-router";
 import {
-  FAVORITE_ARTICLES,
-  MY_ARTICLES,
-} from "../features/selectArticlesType/SelectArticlesType";
+  getProfile,
+  selectProfile,
+} from "../features/profile/profileSlice";
+import Status from "../utils/Status";
+import {
+  FilterType,
+  filterFavoriteArticles,
+  filterMyArticles,
+  selectArticleFilter,
+} from "../features/article/articleSlice";
 
-function ProfileAction({ currentUser, profile, onFollow, onUnfollow }) {
-  if (currentUser.username === profile.username)
+function ProfileAction({ currentUser, profile }) {
+  if (
+    currentUser.isAuthenticated &&
+    currentUser.profile.username === profile.data.username
+  )
     return (
       <button className="btn btn-sm btn-outline-secondary action-btn">
         <i className="ion-gear-a"></i>
@@ -19,10 +30,10 @@ function ProfileAction({ currentUser, profile, onFollow, onUnfollow }) {
   else
     return (
       <FollowButton
-        username={profile.username}
-        isFollowng={profile.following}
-        onFollow={onFollow}
-        onUnfollow={onUnfollow}
+        isAuthenticated={currentUser.isAuthenticated}
+        followingStatus={profile.data.followingStatus}
+        username={profile.data.username}
+        isFollowng={profile.data.following}
       />
     );
 }
@@ -33,59 +44,10 @@ function ProfileInfo({ currentUser, profile }) {
       <div className="container">
         <div className="row">
           <div className="col-xs-12 col-md-10 offset-md-1">
-            <img src={profile.image} className="user-img" />
-            <h4>{profile.username}</h4>
-            <p>{profile.bio}</p>
-            <ProfileAction
-              currentUser={currentUser}
-              profile={profile}
-              onFollow={() => alert("!!!")}
-              onUnfollow={() => alert("!!!")}
-            />
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ProfilePageContent({
-  currentUser,
-  profile,
-  articles,
-  pagging,
-  selectedTab,
-  setTab,
-  setPage,
-  addToFavorite,
-  removeFromFavorite,
-}) {
-  const myArticlesTab = { id: MY_ARTICLES, displayName: "My Articles" };
-  const favoriteArticlesTab = {
-    id: FAVORITE_ARTICLES,
-    displayName: "Favorite Articles",
-  };
-
-  return (
-    <div className="profile-page">
-      <ProfileInfo currentUser={currentUser} profile={profile} />
-
-      <div className="container">
-        <div className="row">
-          <div className="col-xs-12 col-md-10 offset-md-1">
-            <Tabs
-              values={[myArticlesTab, favoriteArticlesTab]}
-              selectedValue={selectedTab}
-              setValue={setTab}
-            />
-
-            <ArticlesList
-              articles={articles}
-              pagging={pagging}
-              addToFavorite={addToFavorite}
-              removeFromFavorite={removeFromFavorite}
-              setPage={setPage}
-            />
+            <img src={profile.data.image} className="user-img" />
+            <h4>{profile.data.username}</h4>
+            <p>{profile.data.bio}</p>
+            <ProfileAction currentUser={currentUser} profile={profile} />
           </div>
         </div>
       </div>
@@ -94,85 +56,64 @@ function ProfilePageContent({
 }
 
 export default function ProfilePage() {
-  const user = {
-    isAuthenticated: true,
-    username: "Eric Simons",
-    image: "http://i.imgur.com/Qr71crq.jpg",
-    bio: "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games",
+  const currentUser = useSelector(selectUser);
+  const profile = useSelector(selectProfile);
+  const filter = useSelector(selectArticleFilter);
+
+  const dispatch = useDispatch();
+  const { username } = useParams();
+
+  const setFeed = (tab) => {
+    switch (tab) {
+      case FilterType.MY_ARTICLES:
+        dispatch(filterMyArticles(username));
+        break;
+      case FilterType.FAVORITTE_ARTICLES:
+        dispatch(filterFavoriteArticles(username));
+        break;
+    }
   };
 
-  const pagging = {
-    pageCount: 2,
-    currentPage: 1,
-  };
+  if (
+    filter.type === FilterType.GLOBAL_FEED ||
+    filter.type === FilterType.MY_FEED ||
+    filter.type === FilterType.TAG_SEARCH
+  ) {
+    dispatch(filterMyArticles(username));
+  }
 
-  const articles = [
-    {
-      slug: "how-to-build-webapps-that-scale",
-      title: "How to build webapps that scale",
-      description: "This is the description for the post.",
-      body: "string",
-      tagList: ["realworld", "implementations"],
-      createdAt: "2024-01-23T19:14:01.589Z",
-      updatedAt: "2024-01-23T19:14:01.589Z",
-      favorited: false,
-      favoritesCount: 29,
-      author: {
-        username: "Eric Simons",
-        bio: "string",
-        image: "http://i.imgur.com/Qr71crq.jpg",
-        following: false,
-      },
-    },
-    {
-      slug: "the-song-you",
-      title:
-        "The song you won't ever stop singing. No matter how hard you try.",
-      description: "This is the description for the post.",
-      body: "string",
-      tagList: ["realworld", "implementations"],
-      createdAt: "2024-01-23T19:14:01.589Z",
-      updatedAt: "2024-01-23T19:14:01.589Z",
-      favorited: true,
-      favoritesCount: 11,
-      author: {
-        username: "Albert Pai",
-        bio: "string",
-        image: "http://i.imgur.com/N4VcUeJ.jpg",
-        following: true,
-      },
-    },
-  ];
-  const selectedTab = MY_ARTICLES;
+  if (profile.status === Status.IDLE || profile.data?.username !== username) {
+    dispatch(getProfile(username));
+  }
 
-  const setPage = function (i) {
-    alert(`Go to page ${i}`);
-  };
-  const addToFavorite = function (i) {
-    alert(`Add article ${i} to favorite`);
-  };
-  const removeFromFavorite = function (i) {
-    alert(`Remove article from ${i} favorite`);
-  };
-  const setTab = function (i) {
-    alert(`Set tab to ${i}`);
-  };
+  if (profile.status === Status.LOADING) {
+    return (
+      <div className="user-info">
+        <div className="container">
+          <div className="row">
+            <div className="col-xs-12 col-md-10 offset-md-1">Loading...</div>
+          </div>
+        </div>
+      </div>
+    );
+  } else
+    return (
+      <div className="profile-page">
+        <ProfileInfo currentUser={currentUser} profile={profile} />
 
-  return (
-    <div>
-      <Header user={user} />
-      <ProfilePageContent
-        currentUser={user}
-        profile={user}
-        articles={articles}
-        pagging={pagging}
-        selectedTab={selectedTab}
-        setTab={setTab}
-        setPage={setPage}
-        addToFavorite={addToFavorite}
-        removeFromFavorite={removeFromFavorite}
-      />
-      <Footer />
-    </div>
-  );
+        <div className="container">
+          <div className="row">
+            <div className="col-xs-12 col-md-10 offset-md-1">
+              <Tabs
+                values={[FilterType.MY_ARTICLES, FilterType.FAVORITTE_ARTICLES]}
+                selectedValue={filter.type}
+                setValue={setFeed}
+              />
+
+              <ArticlesListLayout />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
 }

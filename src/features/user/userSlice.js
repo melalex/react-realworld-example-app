@@ -1,61 +1,68 @@
 import { createAsyncThunk, createSlice } from "@reduxjs/toolkit";
 import Status from "../../utils/Status";
 import { createUser, getUserByToken, login, modifyUser } from "./userApi";
-import { errorReducer, handleApiError } from "../../utils/utilityFunctions";
+import {
+  errorReducer,
+  handleApiError,
+  pendingReducer,
+} from "../../utils/utilityFunctions";
 
 const initialUserState = {
-  status: Status.IDLE.value,
+  status: Status.IDLE,
   isAuthenticated: false,
 };
 
 const successReducer = (state, action) => {
-  state.status = Status.SUCCESS.value;
+  state.status = Status.SUCCESS;
   state.isAuthenticated = true;
   state.profile = action.payload.user;
   state.token = action.payload.user.token;
 };
 
-const pendingReducer = (state, action) => {
-  state.status = Status.LOADING.value;
-};
-
 export const registerUser = createAsyncThunk(
   "user/register",
   async ({ username, email, password }, { rejectWithValue }) =>
-    createUser(username, email, password)
-      .then((it) => it.data)
-      .catch((error) => handleApiError(error, rejectWithValue))
+    createUser(username, email, password).catch((error) =>
+      handleApiError(error, rejectWithValue)
+    )
 );
 
 export const updateUser = createAsyncThunk(
   "user/update",
-  async ({ username, email, password, bio, image }, { rejectWithValue }) =>
-    modifyUser(username, email, password, bio, image)
-      .then((it) => it.data)
-      .catch((error) => handleApiError(error, rejectWithValue))
+  async (form, { rejectWithValue, getState }) => {
+    const { username, email, password, bio, image } = form;
+    const token = selectToken(getState());
+
+    return modifyUser(token, username, email, password, bio, image).catch(
+      (error) => handleApiError(error, rejectWithValue)
+    );
+  }
 );
 
 export const loginUser = createAsyncThunk(
   "user/login",
   async ({ email, password }, { rejectWithValue }) =>
-    login(email, password)
-      .then((it) => it.data)
-      .catch((error) => handleApiError(error, rejectWithValue))
+    login(email, password).catch((error) =>
+      handleApiError(error, rejectWithValue)
+    )
 );
 
 export const loginUserWithToken = createAsyncThunk(
   "user/loginWithToken",
   async ({ token }, { rejectWithValue }) =>
-    getUserByToken(token)
-      .then((it) => it.data)
-      .catch((error) => handleApiError(error, rejectWithValue))
+    getUserByToken(token).catch((error) =>
+      handleApiError(error, rejectWithValue)
+    )
 );
 
 export const userSlice = createSlice({
   name: "user",
   initialState: initialUserState,
   reducers: {
-    logout: (state) => initialUserState,
+    logout: () => initialUserState,
+    setIdleStatus: (state) => {
+      state.status = Status.IDLE;
+    },
   },
   extraReducers(builder) {
     builder
@@ -80,10 +87,13 @@ export const userSlice = createSlice({
   },
 });
 
-export const { logout } = userSlice.actions;
+export const { logout, setIdleStatus } = userSlice.actions;
 
 export const selectUser = (state) => state.user;
+export const selectIsAuthenticated = (state) =>
+  selectUser(state).isAuthenticated;
 export const selectUserStatus = (state) => selectUser(state).status;
 export const selectUserErrors = (state) => selectUser(state).errors;
+export const selectToken = (state) => selectUser(state).token;
 
 export default userSlice.reducer;

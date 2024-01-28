@@ -5,7 +5,7 @@ export default function SubmitButton({ status, children, className }) {
     <button
       type="submit"
       className={className}
-      disabled={status === Status.LOADING.value}
+      disabled={status === Status.LOADING}
     >
       {children}
     </button>

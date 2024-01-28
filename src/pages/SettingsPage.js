@@ -1,8 +1,44 @@
+import { useDispatch, useSelector } from "react-redux";
 import ErrorMessage from "../components/ErrorMessage";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
+import {
+  logout,
+  selectUser,
+  selectUserErrors,
+  selectUserStatus,
+  updateUser,
+} from "../features/user/userSlice";
+import {
+  handleAndPreventDefault,
+  handleChangeWith,
+  handleWithoutPropagation,
+} from "../utils/utilityFunctions";
+import { useNavigate } from "react-router";
+import { useState } from "react";
+import { reInitArticles } from "../features/article/articleSlice";
+import { reInitProfile } from "../features/profile/profileSlice";
+import SubmitButton from "../components/SubmitButton";
 
-function SetingPageContent({ errors, prevValues }) {
+export default function SettingsPage() {
+  const user = useSelector(selectUser);
+  const status = useSelector(selectUserStatus);
+  const errors = useSelector(selectUserErrors);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({});
+
+  const onSave = () => {
+    dispatch(updateUser(formData))
+      .unwrap()
+      .then(() => {
+        dispatch(reInitArticles());
+        dispatch(reInitProfile());
+        navigate("/");
+      });
+  };
+
+  const handleChange = handleChangeWith(formData, setFormData);
+
   return (
     <div className="settings-page">
       <div className="container page">
@@ -12,75 +48,78 @@ function SetingPageContent({ errors, prevValues }) {
 
             <ErrorMessage errors={errors} />
 
-            <form>
+            <form onSubmit={handleAndPreventDefault(onSave)}>
               <fieldset>
                 <fieldset className="form-group">
                   <input
-                    defaultValue={prevValues.image}
+                    name="image"
+                    defaultValue={user.profile.image}
                     className="form-control"
                     type="text"
                     placeholder="URL of profile picture"
+                    onChange={handleChange}
                   />
                 </fieldset>
                 <fieldset className="form-group">
                   <input
-                    defaultValue={prevValues.username}
+                    name="username"
+                    defaultValue={user.profile.username}
                     className="form-control form-control-lg"
                     type="text"
                     placeholder="Your Name"
+                    onChange={handleChange}
                   />
                 </fieldset>
                 <fieldset className="form-group">
                   <textarea
-                    defaultValue={prevValues.bio}
+                    name="bio"
+                    defaultValue={user.profile.bio}
                     className="form-control form-control-lg"
                     rows="8"
                     placeholder="Short bio about you"
+                    onChange={handleChange}
                   ></textarea>
                 </fieldset>
                 <fieldset className="form-group">
                   <input
+                    name="email"
+                    defaultValue={user.profile.email}
                     className="form-control form-control-lg"
                     type="text"
                     placeholder="Email"
+                    onChange={handleChange}
                   />
                 </fieldset>
                 <fieldset className="form-group">
                   <input
+                    name="password"
                     className="form-control form-control-lg"
                     type="password"
                     placeholder="New Password"
+                    onChange={handleChange}
                   />
                 </fieldset>
-                <button className="btn btn-lg btn-primary pull-xs-right">
+                <SubmitButton
+                  status={status}
+                  className="btn btn-lg btn-primary pull-xs-right"
+                >
                   Update Settings
-                </button>
+                </SubmitButton>
               </fieldset>
             </form>
             <hr />
-            <button className="btn btn-outline-danger">
+            <button
+              className="btn btn-outline-danger"
+              onClick={handleWithoutPropagation(() => {
+                dispatch(logout());
+                navigate("/");
+              })}
+            >
               Or click here to logout.
             </button>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-export default function SettingsPage() {
-  const user = {
-    isAuthenticated: true,
-    username: "Eric Simons",
-    image: "http://i.imgur.com/Qr71crq.jpg",
-    bio: "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games",
-  };
-
-  return (
-    <div>
-      <Header user={user} />
-      <SetingPageContent errors={[]} prevValues={user} />
-      <Footer />
     </div>
   );
 }

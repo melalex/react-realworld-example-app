@@ -1,6 +1,21 @@
-import ArticlesList from "../components/ArticlesList";
+import { useDispatch, useSelector } from "react-redux";
+import ArticlesListLayout from "../components/ArticlesListLayout";
 import Tabs from "../components/Tabs";
-import { GLOBAL_FEED, USER_FEED } from "../features/changeFeed/ChangeFeed";
+import {
+  loadTags,
+  selectTags,
+  selectTagsStatus,
+} from "../features/tag/tagSlice";
+import Status from "../utils/Status";
+import { handleAndPreventDefault } from "../utils/utilityFunctions";
+import {
+  FilterType,
+  filterByTags,
+  filterGlobalFeed,
+  filterMyFeed,
+  selectArticleFilter,
+} from "../features/article/articleSlice";
+import { selectIsAuthenticated } from "../features/user/userSlice";
 
 function Banner() {
   return (
@@ -14,104 +29,75 @@ function Banner() {
 }
 
 function PopularTagsEntry({ tag }) {
+  const dispatch = useDispatch();
+
+  const onClick = () => dispatch(filterByTags(tag));
+
   return (
-    <a href={`/tags/${tag}`} className="tag-pill tag-default">
+    <a
+      href=""
+      className="tag-pill tag-default"
+      onClick={handleAndPreventDefault(onClick)}
+    >
       {tag}
     </a>
   );
 }
 
-function PopularTags({ tags }) {
-  return (
-    <div className="sidebar">
-      <p>Popular Tags</p>
+function PopularTags() {
+  const status = useSelector(selectTagsStatus);
+  const tags = useSelector(selectTags);
+  const dispatch = useDispatch();
 
-      <div className="tag-list">
-        {tags.map((it) => (
-          <PopularTagsEntry key={it} tag={it} />
-        ))}
+  if (status === Status.IDLE) {
+    dispatch(loadTags());
+  }
+
+  if (Array.isArray(tags) && tags.length !== 0) {
+    return (
+      <div className="sidebar">
+        <p>Popular Tags</p>
+
+        <div className="tag-list">
+          {tags.map((it) => (
+            <PopularTagsEntry key={it} tag={it} />
+          ))}
+        </div>
       </div>
-    </div>
-  );
+    );
+  } else {
+    return <></>;
+  }
 }
 
 export default function HomePage() {
-  const user = {
-    isAuthenticated: true,
-    username: "Eric Simons",
-    image: "http://i.imgur.com/Qr71crq.jpg",
-  };
-  const popularTags = [
-    "programming",
-    "javascript",
-    "emberjs",
-    "angularjs",
-    "react",
-    "mean",
-    "node",
-    "rails",
-  ];
-  const pagging = {
-    pageCount: 2,
-    currentPage: 1,
-  };
-  const articles = [
-    {
-      slug: "how-to-build-webapps-that-scale",
-      title: "How to build webapps that scale",
-      description: "This is the description for the post.",
-      body: "string",
-      tagList: ["realworld", "implementations"],
-      createdAt: "2024-01-23T19:14:01.589Z",
-      updatedAt: "2024-01-23T19:14:01.589Z",
-      favorited: false,
-      favoritesCount: 29,
-      author: {
-        username: "Eric Simons",
-        bio: "string",
-        image: "http://i.imgur.com/Qr71crq.jpg",
-        following: false,
-      },
-    },
-    {
-      slug: "the-song-you",
-      title:
-        "The song you won't ever stop singing. No matter how hard you try.",
-      description: "This is the description for the post.",
-      body: "string",
-      tagList: ["realworld", "implementations"],
-      createdAt: "2024-01-23T19:14:01.589Z",
-      updatedAt: "2024-01-23T19:14:01.589Z",
-      favorited: true,
-      favoritesCount: 11,
-      author: {
-        username: "Albert Pai",
-        bio: "string",
-        image: "http://i.imgur.com/N4VcUeJ.jpg",
-        following: true,
-      },
-    },
-  ];
-  const selectedFeed = GLOBAL_FEED;
-  const setPage = function (i) {
-    alert(`Go to page ${i}`);
-  };
-  const setFeed = function (i) {
-    alert(`Set feed to ${i}`);
-  };
-  const addToFavorite = function (i) {
-    alert(`Add article ${i} to favorite`);
-  };
-  const removeFromFavorite = function (i) {
-    alert(`Remove article from ${i} favorite`);
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+  const filter = useSelector(selectArticleFilter);
+  const dispatch = useDispatch();
+
+  const setFeed = (tab) => {
+    switch (tab) {
+      case FilterType.GLOBAL_FEED:
+        dispatch(filterGlobalFeed());
+        break;
+      case FilterType.MY_FEED:
+        dispatch(filterMyFeed());
+        break;
+    }
   };
 
-  const globalFeedTab = { id: GLOBAL_FEED, displayName: "Global Feed" };
-  const userFeedTab = { id: USER_FEED, displayName: "Your Feed" };
-  const selectedTab = user.isAuthenticated ? selectedFeed : GLOBAL_FEED;
-  const tabs = user.isAuthenticated
-    ? [userFeedTab, globalFeedTab]
-    : [globalFeedTab];
+  const tabs = isAuthenticated
+    ? [FilterType.GLOBAL_FEED, FilterType.MY_FEED]
+    : [FilterType.GLOBAL_FEED];
+
+  if (
+    filter.type === FilterType.MY_ARTICLES ||
+    filter.type === FilterType.FAVORITTE_ARTICLES
+  ) {
+    dispatch(filterGlobalFeed());
+  } else if (filter.type === FilterType.TAG_SEARCH) {
+    tabs.push({ id: filter.type.id, displayName: `#${filter.tag}` });
+  }
 
   return (
     <div className="home-page">
@@ -122,21 +108,15 @@ export default function HomePage() {
           <div className="col-md-9">
             <Tabs
               values={tabs}
-              selectedValue={selectedTab}
+              selectedValue={filter.type}
               setValue={setFeed}
             />
 
-            <ArticlesList
-              articles={articles}
-              pagging={pagging}
-              addToFavorite={addToFavorite}
-              removeFromFavorite={removeFromFavorite}
-              setPage={setPage}
-            />
+            <ArticlesListLayout />
           </div>
 
           <div className="col-md-3">
-            <PopularTags tags={popularTags} />
+            <PopularTags />
           </div>
         </div>
       </div>

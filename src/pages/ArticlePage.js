@@ -1,162 +1,94 @@
+import { useDispatch, useSelector } from "react-redux";
 import CommentsLayout from "../components/CommentsLayout";
 import FollowButton from "../components/FollowButton";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
-import { handleWithoutPropagation } from "../utils/utilityFunctions";
+import {
+  createUserProfileRef,
+  handleWithoutPropagation,
+  toMounthAndDayStr,
+} from "../utils/utilityFunctions";
+import { selectUser } from "../features/user/userSlice";
+import {
+  loadOneArticle,
+  selectArticleById,
+} from "../features/article/articleSlice";
+import { selectProfile, setProfile } from "../features/profile/profileSlice";
+import { Link, useNavigate, useParams } from "react-router-dom";
+import { useEffect } from "react";
+import { selectComments, setArticle } from "../features/comment/commentSlice";
+import FavoriteArticleButton from "../components/FavoriteArticleButton";
+import { deleteArticle } from "../features/article/articleApi";
 
 const FAVORITED_CLASS = "btn btn-sm btn-primary";
 const NOT_FAVORITED_CLASS = "btn btn-sm btn-outline-primary";
 
-function ArticleFavoriteButton({
-  favoritesCount,
-  favorited,
-  removeFromFavorite,
-  addToFavorite,
-}) {
-  const buttonClass = favorited ? FAVORITED_CLASS : NOT_FAVORITED_CLASS;
-  const action = favorited ? removeFromFavorite : addToFavorite;
+function ArticleControls({ article, author }) {
+  const currentUser = useSelector(selectUser);
+  const navigate = useNavigate();
+  const dispatch = useDispatch();
 
-  return (
-    <button className={buttonClass} onClick={handleWithoutPropagation(action)}>
-      <i className="ion-heart"></i>
-      &nbsp; Favorite Post{" "}
-      <span className="counter">({favoritesCount})</span>
-    </button>
-  );
-}
-
-function ArticleControls({
-  article,
-  currentUser,
-  onFollow,
-  onUnfollow,
-  removeFromFavorite,
-  addToFavorite,
-}) {
-  if (article.author.username === currentUser.username) {
+  if (
+    currentUser.isAuthenticated &&
+    author.data.username === currentUser.profile.username
+  ) {
     return (
-      <div>
-        <button className="btn btn-sm btn-outline-secondary">
+      <>
+        <button
+          className="btn btn-sm btn-outline-secondary"
+          onClick={handleWithoutPropagation(() =>
+            navigate(`/editor/${article.slug}`)
+          )}
+        >
           <i className="ion-edit"></i> Edit Article
-        </button>
-        <button className="btn btn-sm btn-outline-danger">
+        </button>{" "}
+        <button
+          className="btn btn-sm btn-outline-danger"
+          onClick={handleWithoutPropagation(() =>
+            dispatch(deleteArticle(article.slug))
+          )}
+        >
           <i className="ion-trash-a"></i> Delete Article
         </button>
-      </div>
+      </>
     );
   } else {
     return (
       <>
         <FollowButton
-          username={article.author.username}
-          isFollowng={article.author.following}
-          onFollow={onFollow}
-          onUnfollow={onUnfollow}
+          isAuthenticated={currentUser.isAuthenticated}
+          followingStatus={author.data.followingStatus}
+          username={author.data.username}
+          isFollowng={author.data.following}
         />
         &nbsp;&nbsp;
-        <ArticleFavoriteButton
-          favoritesCount={article.favoritesCount}
-          favorited={article.favorited}
-          removeFromFavorite={removeFromFavorite}
-          addToFavorite={addToFavorite}
+        <FavoriteArticleButton
+          articleId={article.slug}
+          favoriteClass={FAVORITED_CLASS}
+          notFacoriteClass={NOT_FAVORITED_CLASS}
         />
       </>
     );
   }
 }
 
-function ArticleBanner({
-  article,
-  currentUser,
-  onFollow,
-  onUnfollow,
-  removeFromFavorite,
-  addToFavorite,
-}) {
+function ArticleBanner({ article, author }) {
+  const authorProfileRef = createUserProfileRef(article.author.username);
+
   return (
     <div className="banner">
       <div className="container">
         <h1>{article.title}</h1>
 
         <div className="article-meta">
-          <a href={article.author.profileRef}>
+          <Link to={authorProfileRef}>
             <img src={article.author.image} />
-          </a>
+          </Link>
           <div className="info">
-            <a href={article.author.profileRef} className="author">
+            <Link to={authorProfileRef} className="author">
               {article.author.username}
-            </a>
-            <span className="date">{article.createdAtDateStr}</span>
+            </Link>
+            <span className="date">{toMounthAndDayStr(article.updatedAt)}</span>
           </div>
-          <ArticleControls
-            article={article}
-            currentUser={currentUser}
-            onFollow={onFollow}
-            onUnfollow={onUnfollow}
-            removeFromFavorite={removeFromFavorite}
-            addToFavorite={addToFavorite}
-          />
-        </div>
-      </div>
-    </div>
-  );
-}
-
-function ArticlePageContent({ article, currentUser }) {
-  const stubAction = () => alert("!!!");
-
-  return (
-    <div className="article-page">
-      <ArticleBanner
-        article={article}
-        currentUser={currentUser}
-        onFollow={stubAction}
-        onUnfollow={stubAction}
-        removeFromFavorite={stubAction}
-        addToFavorite={stubAction}
-      />
-
-      <div className="container page">
-        <div className="row article-content">
-          <div className="col-md-12">
-            <p>{article.description}</p>
-            <p>{article.body}</p>
-            <ul className="tag-list">
-              {article.tagList.map((it) => (
-                <li className="tag-default tag-pill tag-outline">{it}</li>
-              ))}
-            </ul>
-          </div>
-        </div>
-
-        <hr />
-
-        <div className="article-actions">
-          <div className="article-meta">
-            <a href={article.author.profileRef}>
-              <img src={article.author.image} />
-            </a>
-            <div className="info">
-              <a href={article.author.profileRef} className="author">
-                {article.author.username}
-              </a>
-              <span className="date">{article.createdAtDateStr}</span>
-            </div>
-            <ArticleControls
-              article={article}
-              currentUser={currentUser}
-              onFollow={stubAction}
-              onUnfollow={stubAction}
-              removeFromFavorite={stubAction}
-              addToFavorite={stubAction}
-            />
-          </div>
-        </div>
-
-        <div className="row">
-          <div className="col-xs-12 col-md-8 offset-md-2">
-            <CommentsLayout />
-          </div>
+          <ArticleControls article={article} author={author} />
         </div>
       </div>
     </div>
@@ -164,38 +96,68 @@ function ArticlePageContent({ article, currentUser }) {
 }
 
 export default function ArticlePage() {
-  const user = {
-    isAuthenticated: true,
-    username: "Eric Simons",
-    profileRef: "/profile/Eric%20FSimons",
-    image: "http://i.imgur.com/Qr71crq.jpg",
-    bio: "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games",
-  };
+  const { slug } = useParams();
+  const article = useSelector((state) => selectArticleById(state, slug));
+  const author = useSelector(selectProfile);
+  const comments = useSelector(selectComments);
+  const authorProfileRef = createUserProfileRef(author.data.username);
+  const dispatch = useDispatch();
 
-  const article = {
-    slug: "the-song-you",
-    title: "The song you won't ever stop singing. No matter how hard you try.",
-    description: "This is the description for the post.",
-    body: "string",
-    tagList: ["realworld", "implementations"],
-    createdAtDateStr: "January 23",
-    createdAt: "2024-01-23T19:14:01.589Z",
-    updatedAt: "2024-01-23T19:14:01.589Z",
-    favorited: true,
-    favoritesCount: 11,
-    author: {
-      username: "Albert Pai",
-      bio: "string",
-      image: "http://i.imgur.com/N4VcUeJ.jpg",
-      following: true,
-    },
-  };
+  useEffect(() => {
+    if (article == null) {
+      dispatch(loadOneArticle(slug));
+    } else if (author.data.username !== article.author.username) {
+      dispatch(setProfile(article.author));
+    } else if (comments.article !== article.slug) {
+      dispatch(setArticle(article.slug));
+    }
+  }, [article, author, comments, slug]);
 
-  return (
-    <div>
-      <Header user={user} />
-      <ArticlePageContent article={article} currentUser={user} />
-      <Footer />
-    </div>
-  );
+  if (article == null) return <></>;
+  else {
+    return (
+      <div className="article-page">
+        <ArticleBanner article={article} author={author} />
+
+        <div className="container page">
+          <div className="row article-content">
+            <div className="col-md-12">
+              <p>{article.description}</p>
+              <p>{article.body}</p>
+              <ul className="tag-list">
+                {article.tagList.map((it) => (
+                  <li key={it} className="tag-default tag-pill tag-outline">
+                    {it}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          </div>
+
+          <hr />
+
+          <div className="article-actions">
+            <div className="article-meta">
+              <Link to={authorProfileRef}>
+                <img src={article.author.image} />
+              </Link>
+              <div className="info">
+                <Link to={authorProfileRef} className="author">
+                  {article.author.username}
+                </Link>
+                <span className="date">{article.createdAtDateStr}</span>
+              </div>
+              <ArticleControls article={article} author={author} />
+            </div>
+          </div>
+
+          <div className="row">
+            <div className="col-xs-12 col-md-8 offset-md-2">
+              <CommentsLayout />
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 }

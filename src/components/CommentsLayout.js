@@ -1,89 +1,112 @@
-function Comment({comment}) {
+import { useDispatch, useSelector } from "react-redux";
+import { selectIsAuthenticated, selectUser } from "../features/user/userSlice";
+import {
+  addComment,
+  commentSelectors,
+  loadComments,
+  selectCommentsStatus,
+} from "../features/comment/commentSlice";
+import {
+  createUserProfileRef,
+  handleAndPreventDefault,
+  handleChangeWith,
+  toMounthAndDayStr,
+} from "../utils/utilityFunctions";
+import { useState } from "react";
+import SubmitButton from "./SubmitButton";
+import useFetching from "../hooks/useFetching";
+import { Link } from "react-router-dom";
+
+function Comment({ commentId }) {
+  const comment = useSelector((state) =>
+    commentSelectors.selectById(state, commentId)
+  );
+  const authorProfileRef = createUserProfileRef(comment.author.username);
+
   return (
     <div className="card">
       <div className="card-block">
         <p className="card-text">{comment.body}</p>
       </div>
       <div className="card-footer">
-        <a href={comment.author.profileRef} className="comment-author">
+        <Link to={authorProfileRef} className="comment-author">
           <img src={comment.author.image} className="comment-author-img" />
-        </a>
+        </Link>
         &nbsp;
-        <a href={comment.author.profileRef} className="comment-author">
+        <Link to={authorProfileRef} className="comment-author">
           {comment.author.username}
-        </a>
-        <span className="date-posted">{comment.createdAtDateStr}</span>
+        </Link>
+        <span className="date-posted">
+          {toMounthAndDayStr(comment.createdAt)}
+        </span>
       </div>
     </div>
   );
 }
 
-function AddCommentForm() {
+function ActualAddCommentForm() {
+  const user = useSelector(selectUser);
+  const status = useSelector(selectCommentsStatus);
+  const dispatch = useDispatch();
+  const initialState = {
+    body: "",
+  };
+  const [formData, setFormData] = useState(initialState);
+
+  const onPost = () => {
+    dispatch(addComment(formData));
+    setFormData(initialState);
+  };
+
+  const handleChange = handleChangeWith(formData, setFormData);
+
   return (
-    <form className="card comment-form">
+    <form
+      onSubmit={handleAndPreventDefault(onPost)}
+      className="card comment-form"
+    >
       <div className="card-block">
         <textarea
+          value={formData.body}
+          name="body"
           className="form-control"
           placeholder="Write a comment..."
           rows="3"
+          onChange={handleChange}
         ></textarea>
       </div>
       <div className="card-footer">
-        <img
-          src="http://i.imgur.com/Qr71crq.jpg"
-          className="comment-author-img"
-        />
-        <button className="btn btn-sm btn-primary">Post Comment</button>
+        <img src={user.profile.image} className="comment-author-img" />
+        <SubmitButton status={status} className="btn btn-sm btn-primary">
+          Post Comment
+        </SubmitButton>
       </div>
     </form>
   );
 }
 
+function AddCommentForm() {
+  const isAuthenticated = useSelector(selectIsAuthenticated);
+
+  if (isAuthenticated) {
+    return <ActualAddCommentForm />;
+  } else {
+    return <></>;
+  }
+}
+
 export default function CommentsLayout() {
-  const user = {
-    isAuthenticated: true,
-    username: "Eric Simons",
-    profileRef: "/profile/Eric%20FSimons",
-    image: "http://i.imgur.com/Qr71crq.jpg",
-    bio: "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games",
-  };
-  const comments = [
-    {
-      id: 0,
-      createdAtDateStr: "Dec 29th",
-      createdAt: "2024-01-24T18:09:35.521Z",
-      updatedAt: "2024-01-24T18:09:35.521Z",
-      body: "With supporting text below as a natural lead-in to additional content.",
-      author: {
-        username: "Jacob Schmidt",
-        profileRef: "/profile/Jacob%20FSchmidt",
-        bio: "string",
-        image: "http://i.imgur.com/Qr71crq.jpg",
-        following: true,
-      },
-    },
-    {
-      id: 0,
-      createdAtDateStr: "Dec 29th",
-      createdAt: "2024-01-24T18:09:35.521Z",
-      updatedAt: "2024-01-24T18:09:35.521Z",
-      body: "With supporting text below as a natural lead-in to additional content.",
-      author: {
-        username: "Jacob Schmidt",
-        profileRef: "/profile/Jacob%20FSchmidt",
-        bio: "string",
-        image: "http://i.imgur.com/Qr71crq.jpg",
-        following: true,
-      },
-    },
-  ];
+  const comments = useSelector(commentSelectors.selectIds);
+  const status = useSelector(selectCommentsStatus);
+
+  useFetching(status, loadComments);
 
   return (
     <div>
       <AddCommentForm />
 
       {comments.map((it) => (
-        <Comment comment={it} />
+        <Comment key={it} commentId={it} />
       ))}
     </div>
   );

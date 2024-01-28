@@ -3,16 +3,16 @@ import { handleWithoutPropagation } from "../utils/utilityFunctions";
 const ACTIVE_TAB = "nav-link active";
 const TAB = "nav-link";
 
-function Tab({ tabId, displayName, isSelectedValue, setValue }) {
+function Tab({ tab, isSelectedValue, setValue }) {
   const tabClass = isSelectedValue ? ACTIVE_TAB : TAB;
 
   return (
     <li className="nav-item">
       <a
         className={tabClass}
-        onClick={handleWithoutPropagation(() => setValue(tabId))}
+        onClick={handleWithoutPropagation(() => setValue(tab))}
       >
-        {displayName}
+        {tab.displayName}
       </a>
     </li>
   );
@@ -25,9 +25,8 @@ export default function Tabs({ values, selectedValue, setValue }) {
         {values.map((it) => (
           <Tab
             key={it.id}
-            tabId={it.id}
-            displayName={it.displayName}
-            isSelectedValue={it.id === selectedValue}
+            tab={it}
+            isSelectedValue={it.id === selectedValue.id}
             setValue={setValue}
           />
         ))}

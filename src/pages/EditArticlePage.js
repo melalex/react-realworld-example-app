@@ -1,7 +1,22 @@
+import { useDispatch, useSelector } from "react-redux";
 import ErrorMessage from "../components/ErrorMessage";
-import Footer from "../components/Footer";
-import Header from "../components/Header";
-import { handleWithoutPropagation } from "../utils/utilityFunctions";
+import {
+  handleAndPreventDefault,
+  handleChangeWith,
+  handleWithoutPropagation,
+} from "../utils/utilityFunctions";
+import {
+  loadOneArticle,
+  reInitArticles,
+  selectArticleById,
+  selectArticleListErrors,
+  selectArticleListStatus,
+} from "../features/article/articleSlice";
+import { useEffect, useState } from "react";
+import { useNavigate, useParams } from "react-router";
+import SubmitButton from "../components/SubmitButton";
+import { createArticle, editArticle } from "../features/article/articleSlice";
+import { reInitProfile } from "../features/profile/profileSlice";
 
 function RemovableTag({ tag, removeTag }) {
   return (
@@ -16,13 +31,75 @@ function RemovableTag({ tag, removeTag }) {
   );
 }
 
-function EditArticlePageContent({ errors, article }) {
-  const removeTag = (tag) => alert("remove " + tag);
+export default function EditArticlePage({ createNew }) {
+  const initialState = {
+    slug: "",
+    title: "",
+    description: "",
+    body: "",
+    tagList: [],
+    focusedTag: "",
+  };
+  const { slug } = useParams();
+  const prevValue = useSelector((state) => selectArticleById(state, slug));
+
+  const article = createNew
+    ? initialState
+    : {
+        ...initialState,
+        ...prevValue,
+      };
+  const errors = useSelector(selectArticleListErrors);
+  const status = useSelector(selectArticleListStatus);
+  const dispatch = useDispatch();
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState(article);
+
+  const handleChange = handleChangeWith(formData, setFormData);
+
+  const removeTag = (tag) => {
+    const newFromData = {
+      ...formData,
+      tagList: formData.tagList.filter((it) => it !== tag),
+    };
+
+    setFormData(newFromData);
+  };
+
   const handleKeyDown = (event) => {
-    if (event.key === "Enter") {
-      alert(article.focusedTag);
+    if (event.key === " ") {
+      const focusedTag = formData.focusedTag;
+      const newFromData = {
+        ...formData,
+        tagList: [...formData.tagList, focusedTag],
+        focusedTag: "",
+      };
+
+      setFormData(newFromData);
     }
   };
+
+  const onSave = async () => {
+    const promise = createNew
+      ? dispatch(createArticle(formData))
+      : dispatch(editArticle({ slug, formData }));
+
+    promise
+      .unwrap()
+      .then((it) => {
+        dispatch(reInitArticles());
+        dispatch(reInitProfile());
+        navigate(`/article/${it.article.slug}`);
+      })
+      .catch((err) => console.log(err));
+  };
+
+  useEffect(() => {
+    if (formData.slug === "" && !createNew) {
+      dispatch(loadOneArticle(slug));
+    }
+  }, [formData, slug, createNew]);
 
   return (
     <div className="editor-page">
@@ -31,83 +108,65 @@ function EditArticlePageContent({ errors, article }) {
           <div className="col-md-10 offset-md-1 col-xs-12">
             <ErrorMessage errors={errors} />
 
-            <form>
+            <form onSubmit={handleAndPreventDefault(onSave)}>
               <fieldset>
                 <fieldset className="form-group">
                   <input
-                    defaultValue={article.title}
+                    value={formData.title}
+                    name="title"
                     type="text"
                     className="form-control form-control-lg"
                     placeholder="Article Title"
+                    onChange={handleChange}
                   />
                 </fieldset>
                 <fieldset className="form-group">
                   <input
-                    defaultValue={article.description}
+                    value={formData.description}
+                    name="description"
                     type="text"
                     className="form-control"
                     placeholder="What's this article about?"
+                    onChange={handleChange}
                   />
                 </fieldset>
                 <fieldset className="form-group">
                   <textarea
-                    defaultValue={article.body}
+                    value={formData.body}
+                    name="body"
                     className="form-control"
                     rows="8"
                     placeholder="Write your article (in markdown)"
+                    onChange={handleChange}
                   ></textarea>
                 </fieldset>
                 <fieldset className="form-group">
                   <input
-                    defaultValue={article.focusedTag}
+                    value={formData.focusedTag}
+                    name="focusedTag"
                     type="text"
                     className="form-control"
                     placeholder="Enter tags"
                     onKeyDown={handleKeyDown}
+                    onChange={handleChange}
                   />
                   <div className="tag-list">
-                    {article.tagList.map((it) => (
-                      <RemovableTag tag={it} removeTag={removeTag} />
+                    {formData.tagList.map((it) => (
+                      <RemovableTag key={it} tag={it} removeTag={removeTag} />
                     ))}
                   </div>
                 </fieldset>
-                <button
+                <SubmitButton
+                  status={status}
                   className="btn btn-lg pull-xs-right btn-primary"
-                  type="button"
                 >
                   Publish Article
-                </button>
+                </SubmitButton>
               </fieldset>
             </form>
           </div>
         </div>
       </div>
-    </div>
-  );
-}
-
-export default function EditArticlePage() {
-  const user = {
-    isAuthenticated: true,
-    username: "Eric Simons",
-    image: "http://i.imgur.com/Qr71crq.jpg",
-    bio: "Cofounder @GoThinkster, lived in Aol's HQ for a few months, kinda looks like Peeta from the Hunger Games",
-  };
-
-  const article = {
-    slug: "the-song-you",
-    title: "The song you won't ever stop singing. No matter how hard you try.",
-    description: "This is the description for the post.",
-    body: "string",
-    tagList: ["realworld", "implementations"],
-    focusedTag: "new tag",
-  };
-
-  return (
-    <div>
-      <Header user={user} />
-      <EditArticlePageContent errors={[]} article={article} />
-      <Footer />
     </div>
   );
 }
